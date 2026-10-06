@@ -34,6 +34,14 @@ URL esperada:
 https://familiasegura2026aqp-gif.github.io/photoshare-eventos/
 ```
 
+Pantallas principales:
+
+```text
+Invitados: https://familiasegura2026aqp-gif.github.io/photoshare-eventos/
+Organizador: https://familiasegura2026aqp-gif.github.io/photoshare-eventos/#/admin
+Evento por QR: https://familiasegura2026aqp-gif.github.io/photoshare-eventos/#/event/CODIGO
+```
+
 En GitHub, ir a `Settings > Pages` y seleccionar `GitHub Actions` como fuente de publicacion.
 
 ## Pendiente para backend

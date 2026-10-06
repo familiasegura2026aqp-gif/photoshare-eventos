@@ -1,10 +1,6 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import QRCode from 'qrcode';
-import { environment } from '../environments/environment';
-import { EventStoreService } from './event-store.service';
-import { EventSummary } from './models';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   imports: [FormsModule, RouterLink],
@@ -13,27 +9,16 @@ import { EventSummary } from './models';
   styleUrl: './home.component.scss',
 })
 export class HomeComponent {
-  protected readonly eventName = signal('');
-  protected readonly selectedEvent = signal<EventSummary | null>(null);
-  protected readonly qrDataUrl = signal('');
-  protected readonly events = computed(() => this.store.events());
+  protected readonly eventCode = signal('');
 
-  constructor(private readonly store: EventStoreService) {}
+  constructor(private readonly router: Router) {}
 
-  protected async createEvent(): Promise<void> {
-    const name = this.eventName().trim();
-    if (!name) {
+  protected enterEvent(): void {
+    const code = this.eventCode().trim().toUpperCase();
+    if (!code) {
       return;
     }
 
-    const event = await this.store.createEvent(name);
-    this.selectedEvent.set(event);
-    this.eventName.set('');
-    this.qrDataUrl.set(await QRCode.toDataURL(this.eventUrl(event.code), { margin: 1, width: 256 }));
-  }
-
-  protected eventUrl(code: string): string {
-    const baseUrl = environment.publicBaseUrl || `${location.origin}${location.pathname}`;
-    return `${baseUrl.replace(/\/?$/, '/')}#/event/${code}`;
+    void this.router.navigate(['/event', code]);
   }
 }

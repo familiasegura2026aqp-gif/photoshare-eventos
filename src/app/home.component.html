@@ -1,54 +1,33 @@
-<main class="shell">
+<main class="shell guest-shell">
   <section class="intro">
-    <p class="eyebrow">PhotoShare QR para eventos</p>
-    <h1>Un album compartido para bodas, promociones y reuniones.</h1>
+    <p class="eyebrow">PhotoShare para invitados</p>
+    <h1>Escanea el QR o entra con el codigo del evento.</h1>
     <p>
-      Crea un evento, comparte el QR y permite que los invitados suban fotos desde su celular.
+      Sube tus fotos desde el celular y miralas junto con las de todos los invitados.
     </p>
   </section>
 
   <section class="panel">
-    <form (ngSubmit)="createEvent()" class="creator">
-      <label for="eventName">Nombre del evento</label>
+    <form (ngSubmit)="enterEvent()" class="creator">
+      <label for="eventCode">Codigo del evento</label>
       <div class="row">
         <input
-          id="eventName"
-          name="eventName"
+          id="eventCode"
+          name="eventCode"
           type="text"
-          placeholder="Ej. Promo 2027"
-          [ngModel]="eventName()"
-          (ngModelChange)="eventName.set($event)"
+          placeholder="Ej. PROMO2027ABCD"
+          autocomplete="off"
+          [ngModel]="eventCode()"
+          (ngModelChange)="eventCode.set($event)"
         />
-        <button type="submit">Crear evento</button>
+        <button type="submit">Entrar</button>
       </div>
     </form>
-
-    @if (selectedEvent(); as event) {
-      <div class="qr-result">
-        <img [src]="qrDataUrl()" alt="QR del evento" />
-        <div>
-          <span>Codigo</span>
-          <strong>{{ event.code }}</strong>
-          <a [routerLink]="['/event', event.code]">Abrir evento</a>
-        </div>
-      </div>
-    }
   </section>
 
-  <section class="events">
-    <h2>Eventos creados</h2>
-    @if (events().length) {
-      <div class="event-list">
-        @for (event of events(); track event.id) {
-          <a class="event-card" [routerLink]="['/event', event.code]">
-            <span>{{ event.code }}</span>
-            <strong>{{ event.name }}</strong>
-            <small>{{ event.photoCount }} fotos</small>
-          </a>
-        }
-      </div>
-    } @else {
-      <p class="empty">Todavia no hay eventos creados en este navegador.</p>
-    }
+  <section class="events guest-help">
+    <h2>Para organizadores</h2>
+    <p class="empty">Crea el evento, genera el QR y comparte el enlace con tus invitados.</p>
+    <a routerLink="/admin">Crear o ver eventos</a>
   </section>
 </main>

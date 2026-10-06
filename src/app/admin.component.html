@@ -1,0 +1,56 @@
+<main class="shell">
+  <section class="intro">
+    <p class="eyebrow">Panel del organizador</p>
+    <h1>Crea eventos y comparte el QR con tus invitados.</h1>
+    <p>
+      Esta pantalla es para preparar el evento. Los invitados entran por el QR o desde la pantalla publica.
+    </p>
+  </section>
+
+  <section class="panel">
+    <form (ngSubmit)="createEvent()" class="creator">
+      <label for="eventName">Nombre del evento</label>
+      <div class="row">
+        <input
+          id="eventName"
+          name="eventName"
+          type="text"
+          placeholder="Ej. Promo 2027"
+          [ngModel]="eventName()"
+          (ngModelChange)="eventName.set($event)"
+        />
+        <button type="submit">Crear evento</button>
+      </div>
+    </form>
+
+    @if (selectedEvent(); as event) {
+      <div class="qr-result">
+        <img [src]="qrDataUrl()" alt="QR del evento" />
+        <div>
+          <span>Codigo</span>
+          <strong>{{ event.code }}</strong>
+          <a [routerLink]="['/event', event.code]">Abrir evento</a>
+        </div>
+      </div>
+    }
+  </section>
+
+  <section class="events">
+    <h2>Eventos creados</h2>
+    @if (events().length) {
+      <div class="event-list">
+        @for (event of events(); track event.id) {
+          <a class="event-card" [routerLink]="['/event', event.code]">
+            <span>{{ event.code }}</span>
+            <strong>{{ event.name }}</strong>
+            <small>{{ event.photoCount }} fotos</small>
+          </a>
+        }
+      </div>
+    } @else {
+      <p class="empty">Todavia no hay eventos creados.</p>
+    }
+  </section>
+
+  <a routerLink="/" class="public-link">Ir a pantalla publica</a>
+</main>
