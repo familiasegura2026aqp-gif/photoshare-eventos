@@ -2,6 +2,7 @@ import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import QRCode from 'qrcode';
+import { environment } from '../environments/environment';
 import { EventStoreService } from './event-store.service';
 import { EventSummary } from './models';
 
@@ -32,6 +33,7 @@ export class HomeComponent {
   }
 
   protected eventUrl(code: string): string {
-    return `${location.origin}${location.pathname}#/event/${code}`;
+    const baseUrl = environment.publicBaseUrl || `${location.origin}${location.pathname}`;
+    return `${baseUrl.replace(/\/?$/, '/')}#/event/${code}`;
   }
 }

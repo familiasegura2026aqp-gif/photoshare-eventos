@@ -5,7 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build:pages": "ng build --configuration production --base-href /photoshare-eventos/",
+    "build:pages": "ng build --configuration production --base-href /photoshare-eventos/ && node scripts/copy-404.mjs",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
     "watch": "ng build --watch --configuration development",
