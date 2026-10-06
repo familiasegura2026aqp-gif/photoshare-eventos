@@ -39,6 +39,10 @@ export default {
         return json(await listPhotos(env, url.pathname.split('/').at(-1) ?? ''));
       }
 
+      if (request.method === 'GET' && url.pathname.startsWith('/media/')) {
+        return proxyDriveMedia(env, url.pathname.split('/').at(-1) ?? '');
+      }
+
       if (request.method === 'POST' && url.pathname === '/create-event') {
         return json(await createEvent(request, env), 201);
       }
@@ -147,13 +151,14 @@ async function uploadPhoto(request: Request, env: Env) {
   const folderId = event.drive_folder_id || (await createDriveFolder(env, accessToken, event));
   const driveFile = await uploadToDrive(accessToken, folderId, file);
   await makeDriveFileReadable(accessToken, driveFile.id);
-  const publicUrl = drivePublicUrl(driveFile.id);
-  const photo = await createPhotoRecord(env, event.id, file.name, driveFile.id, uploaderName, publicUrl);
+  const mediaUrl = mediaProxyUrl(request.url, driveFile.id);
+  const thumbnailUrl = driveFile.thumbnailLink || mediaUrl;
+  const photo = await createPhotoRecord(env, event.id, file.name, driveFile.id, uploaderName, thumbnailUrl);
 
   return {
     ...photo,
     drive_file_id: driveFile.id,
-    thumbnail_url: publicUrl,
+    thumbnail_url: thumbnailUrl,
   };
 }
 
@@ -175,8 +180,31 @@ async function listPhotos(env: Env, eventCode: string) {
   const photos = await response.json<Array<{ drive_file_id: string; thumbnail_url: string | null }>>();
   return photos.map((photo) => ({
     ...photo,
-    thumbnail_url: photo.thumbnail_url || drivePublicUrl(photo.drive_file_id),
+    thumbnail_url: photo.thumbnail_url || mediaProxyUrl('', photo.drive_file_id),
   }));
+}
+
+async function proxyDriveMedia(env: Env, fileId: string): Promise<Response> {
+  if (!fileId) {
+    return json({ message: 'fileId is required' }, 400);
+  }
+
+  const accessToken = await getGoogleAccessToken(env);
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+    headers: { authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!response.ok) {
+    return json({ message: `Google Drive media failed: ${response.status}` }, response.status);
+  }
+
+  return new Response(response.body, {
+    headers: {
+      ...corsHeaders,
+      'cache-control': 'public, max-age=3600',
+      'content-type': response.headers.get('content-type') ?? 'application/octet-stream',
+    },
+  });
 }
 
 async function makeDriveFileReadable(accessToken: string, fileId: string): Promise<void> {
@@ -196,6 +224,11 @@ async function makeDriveFileReadable(accessToken: string, fileId: string): Promi
 
 function drivePublicUrl(fileId: string): string {
   return `https://drive.google.com/uc?export=view&id=${fileId}`;
+}
+
+function mediaProxyUrl(requestUrl: string, fileId: string): string {
+  const origin = requestUrl ? new URL(requestUrl).origin : 'https://photoshare-eventos-api.familiasegura2026aqp.workers.dev';
+  return `${origin}/media/${fileId}`;
 }
 
 async function createDriveFolder(env: Env, accessToken: string, event: EventRecord): Promise<string> {
