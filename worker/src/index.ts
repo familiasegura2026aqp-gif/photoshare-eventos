@@ -2,8 +2,11 @@ interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
   GOOGLE_CLIENT_EMAIL: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
   GOOGLE_PRIVATE_KEY: string;
   GOOGLE_DRIVE_ROOT_FOLDER_ID?: string;
+  GOOGLE_REFRESH_TOKEN?: string;
 }
 
 interface EventRecord {
@@ -263,6 +266,10 @@ async function createPhotoRecord(
 }
 
 async function getGoogleAccessToken(env: Env): Promise<string> {
+  if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && env.GOOGLE_REFRESH_TOKEN) {
+    return getOAuthAccessToken(env);
+  }
+
   const now = Math.floor(Date.now() / 1000);
   const header = base64UrlEncode(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
   const claim = base64UrlEncode(
@@ -288,6 +295,26 @@ async function getGoogleAccessToken(env: Env): Promise<string> {
 
   if (!response.ok) {
     throw new Error(`Google auth failed: ${response.status}`);
+  }
+
+  const token = await response.json<{ access_token: string }>();
+  return token.access_token;
+}
+
+async function getOAuthAccessToken(env: Env): Promise<string> {
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    body: new URLSearchParams({
+      client_id: env.GOOGLE_CLIENT_ID ?? '',
+      client_secret: env.GOOGLE_CLIENT_SECRET ?? '',
+      grant_type: 'refresh_token',
+      refresh_token: env.GOOGLE_REFRESH_TOKEN ?? '',
+    }),
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    method: 'POST',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Google OAuth refresh failed: ${response.status} ${await response.text()}`);
   }
 
   const token = await response.json<{ access_token: string }>();
