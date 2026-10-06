@@ -12,6 +12,7 @@ export interface PhotoItem {
   filename: string;
   dataUrl: string;
   thumbnailUrl: string;
+  mediaType: 'image' | 'video';
   createdAt: string;
   uploaderName?: string;
 }

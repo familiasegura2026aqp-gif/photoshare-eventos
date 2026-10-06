@@ -9,8 +9,8 @@
 
     <section class="upload-panel">
       <label class="file-action">
-        <input type="file" accept="image/*" capture="environment" (change)="upload($event)" />
-        <span>{{ isUploading() ? 'Subiendo...' : 'Tomar o subir foto' }}</span>
+        <input type="file" accept="image/*,video/*" (change)="upload($event)" />
+        <span>{{ isUploading() ? 'Subiendo...' : 'Tomar foto, grabar video o subir archivo' }}</span>
       </label>
 
       @if (uploadMessage()) {
@@ -28,7 +28,11 @@
         <div class="grid">
           @for (photo of photos(); track photo.id) {
             <button type="button" class="photo" (click)="selectedPhoto.set(photo)">
-              <img [src]="photo.thumbnailUrl" [alt]="photo.filename" />
+              @if (photo.mediaType === 'video') {
+                <video [src]="photo.thumbnailUrl" muted playsinline></video>
+              } @else {
+                <img [src]="photo.thumbnailUrl" [alt]="photo.filename" />
+              }
               <span>{{ photo.uploaderName || 'Invitado' }}</span>
             </button>
           }
@@ -42,7 +46,11 @@
       <div class="lightbox" role="dialog" aria-modal="true" (click)="selectedPhoto.set(null)">
         <figure (click)="$event.stopPropagation()">
           <button type="button" (click)="selectedPhoto.set(null)">Cerrar</button>
-          <img [src]="photo.dataUrl" [alt]="photo.filename" />
+          @if (photo.mediaType === 'video') {
+            <video [src]="photo.dataUrl" controls playsinline></video>
+          } @else {
+            <img [src]="photo.dataUrl" [alt]="photo.filename" />
+          }
           <figcaption>
             {{ photo.uploaderName || 'Invitado' }} - {{ photo.createdAt | date: 'short' }}
           </figcaption>

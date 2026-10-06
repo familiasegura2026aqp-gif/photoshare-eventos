@@ -105,7 +105,8 @@ input[type='text'] {
   text-align: left;
 }
 
-.photo img {
+.photo img,
+.photo video {
   aspect-ratio: 1;
   border-radius: 6px;
   object-fit: cover;
@@ -151,7 +152,8 @@ figure button {
   padding: 0 14px;
 }
 
-figure img {
+figure img,
+figure video {
   max-height: 72vh;
   object-fit: contain;
   width: 100%;

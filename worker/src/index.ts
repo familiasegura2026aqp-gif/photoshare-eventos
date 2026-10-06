@@ -129,12 +129,13 @@ async function uploadPhoto(request: Request, env: Env) {
     throw new Error('eventCode and file are required.');
   }
 
-  if (!file.type.startsWith('image/')) {
-    throw new Error('Only image uploads are allowed.');
+  const isSupportedMedia = file.type.startsWith('image/') || file.type.startsWith('video/');
+  if (!isSupportedMedia) {
+    throw new Error('Only image and video uploads are allowed.');
   }
 
-  if (file.size > 5 * 1024 * 1024) {
-    throw new Error('Image exceeds the 5 MB upload limit.');
+  if (file.size > 100 * 1024 * 1024) {
+    throw new Error('File exceeds the 100 MB upload limit.');
   }
 
   const event = await getEvent(env, eventCode);

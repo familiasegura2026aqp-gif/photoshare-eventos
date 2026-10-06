@@ -113,8 +113,9 @@ export class EventStoreService {
   }
 
   async addPhoto(eventCode: string, file: File, uploaderName: string): Promise<PhotoItem> {
-    const dataUrl = await this.compressImage(file);
-    const uploadFile = this.dataUrlToFile(dataUrl, file.name);
+    const isVideo = file.type.startsWith('video/');
+    const dataUrl = isVideo ? URL.createObjectURL(file) : await this.compressImage(file);
+    const uploadFile = isVideo ? file : this.dataUrlToFile(dataUrl, file.name);
     await this.uploadToApi(eventCode, uploadFile, uploaderName);
     const photo: PhotoItem = {
       id: crypto.randomUUID(),
@@ -122,6 +123,7 @@ export class EventStoreService {
       filename: file.name,
       dataUrl,
       thumbnailUrl: dataUrl,
+      mediaType: isVideo ? 'video' : 'image',
       createdAt: new Date().toISOString(),
       uploaderName: uploaderName.trim() || undefined,
     };
@@ -255,7 +257,7 @@ export class EventStoreService {
 
     if (!response.ok) {
       const error = (await response.json().catch(() => null)) as { message?: string } | null;
-      throw new Error(error?.message || 'No se pudo subir la foto al servidor.');
+      throw new Error(error?.message || 'No se pudo subir el archivo al servidor.');
     }
   }
 
