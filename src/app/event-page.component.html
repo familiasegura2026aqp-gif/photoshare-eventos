@@ -8,15 +8,16 @@
     </header>
 
     <section class="upload-panel">
-      <label for="uploaderName">Tu nombre opcional</label>
+      <label for="uploaderName">Tu nombre</label>
       <input
         id="uploaderName"
         name="uploaderName"
         type="text"
         placeholder="Ej. Maria"
         [ngModel]="uploaderName()"
-        (ngModelChange)="uploaderName.set($event)"
+        (ngModelChange)="updateUploaderName($event)"
       />
+      <p class="field-note">Se recordara en este celular para tus siguientes fotos.</p>
 
       <label class="file-action">
         <input type="file" accept="image/*" capture="environment" (change)="upload($event)" />

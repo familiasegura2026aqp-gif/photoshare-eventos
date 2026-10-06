@@ -5,6 +5,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EventStoreService } from './event-store.service';
 import { PhotoItem } from './models';
 
+const GUEST_NAME_KEY = 'photoshare.guestName';
+
 @Component({
   imports: [DatePipe, FormsModule, RouterLink],
   selector: 'app-event-page',
@@ -25,6 +27,17 @@ export class EventPageComponent {
     private readonly store: EventStoreService,
   ) {
     this.code.set(this.route.snapshot.paramMap.get('code') ?? '');
+    this.uploaderName.set(localStorage.getItem(GUEST_NAME_KEY) ?? '');
+  }
+
+  protected updateUploaderName(name: string): void {
+    this.uploaderName.set(name);
+    const cleanName = name.trim();
+    if (cleanName) {
+      localStorage.setItem(GUEST_NAME_KEY, cleanName);
+    } else {
+      localStorage.removeItem(GUEST_NAME_KEY);
+    }
   }
 
   protected async upload(event: Event): Promise<void> {
@@ -37,7 +50,12 @@ export class EventPageComponent {
     this.isUploading.set(true);
     this.uploadMessage.set('');
     try {
-      await this.store.addPhoto(this.code(), file, this.uploaderName());
+      const uploaderName = this.uploaderName().trim();
+      if (uploaderName) {
+        localStorage.setItem(GUEST_NAME_KEY, uploaderName);
+      }
+
+      await this.store.addPhoto(this.code(), file, uploaderName);
       this.uploadMessage.set('Foto subida correctamente.');
     } catch (error) {
       this.uploadMessage.set(error instanceof Error ? error.message : 'No se pudo subir la foto.');
