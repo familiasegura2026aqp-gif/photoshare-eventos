@@ -152,6 +152,14 @@ a {
   color: #172033;
 }
 
+.event-qr {
+  aspect-ratio: 1;
+  border: 1px solid #dce3e8;
+  border-radius: 8px;
+  justify-self: start;
+  width: min(100%, 150px);
+}
+
 .card-actions {
   display: flex;
   flex-wrap: wrap;

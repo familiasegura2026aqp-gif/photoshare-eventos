@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { EventStoreService } from './event-store.service';
 
 @Component({
   imports: [FormsModule, RouterLink],
@@ -10,8 +11,12 @@ import { Router, RouterLink } from '@angular/router';
 })
 export class HomeComponent {
   protected readonly eventCode = signal('');
+  protected readonly events = computed(() => this.store.events());
 
-  constructor(private readonly router: Router) {}
+  constructor(
+    private readonly router: Router,
+    private readonly store: EventStoreService,
+  ) {}
 
   protected enterEvent(): void {
     const code = this.eventCode().trim().toUpperCase();

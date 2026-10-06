@@ -20,6 +20,13 @@ export class EventStoreService {
 
   async createEvent(name: string): Promise<EventSummary> {
     const code = this.createCode(name);
+    const apiEvent = await this.createEventWithApi(name, code);
+    if (apiEvent) {
+      this.eventsSignal.update((events) => [apiEvent, ...events]);
+      this.persist(EVENTS_KEY, this.eventsSignal());
+      return apiEvent;
+    }
+
     const { data, error } = await supabase
       .from('events')
       .insert({ name, code })
@@ -115,6 +122,41 @@ export class EventStoreService {
 
     this.eventsSignal.set(events);
     this.persist(EVENTS_KEY, events);
+  }
+
+  private async createEventWithApi(name: string, code: string): Promise<EventSummary | null> {
+    if (!environment.apiBaseUrl) {
+      return null;
+    }
+
+    try {
+      const response = await fetch(`${environment.apiBaseUrl}/create-event`, {
+        body: JSON.stringify({ code, name }),
+        headers: { 'content-type': 'application/json' },
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const event = (await response.json()) as {
+        code: string;
+        created_at: string;
+        id: string;
+        name: string;
+      };
+
+      return {
+        id: event.id,
+        name: event.name,
+        code: event.code,
+        createdAt: event.created_at,
+        photoCount: 0,
+      };
+    } catch {
+      return null;
+    }
   }
 
   private compressImage(file: File): Promise<string> {

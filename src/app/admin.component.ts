@@ -14,12 +14,18 @@ import { EventSummary } from './models';
 })
 export class AdminComponent {
   protected readonly eventName = signal('');
+  protected readonly accessQrDataUrl = signal('');
+  protected readonly accessUrl = signal('');
   protected readonly selectedEvent = signal<EventSummary | null>(null);
   protected readonly qrDataUrl = signal('');
   protected readonly selectedEventUrl = signal('');
+  protected readonly qrByEvent = signal<Record<string, string>>({});
   protected readonly events = computed(() => this.store.events());
+  private readonly pendingQr = new Set<string>();
 
-  constructor(private readonly store: EventStoreService) {}
+  constructor(private readonly store: EventStoreService) {
+    void this.generateAccessQr();
+  }
 
   protected async createEvent(): Promise<void> {
     const name = this.eventName().trim();
@@ -36,11 +42,41 @@ export class AdminComponent {
     const url = this.eventUrl(event.code);
     this.selectedEvent.set(event);
     this.selectedEventUrl.set(url);
-    this.qrDataUrl.set(await QRCode.toDataURL(url, { margin: 1, width: 256 }));
+    const qr = await this.generateQr(event);
+    this.qrDataUrl.set(qr);
+  }
+
+  protected qrFor(event: EventSummary): string {
+    const qr = this.qrByEvent()[event.id];
+    if (!qr && !this.pendingQr.has(event.id)) {
+      void this.generateQr(event);
+    }
+
+    return qr ?? '';
   }
 
   protected eventUrl(code: string): string {
     const baseUrl = environment.publicBaseUrl || `${location.origin}${location.pathname.replace(/admin\/?$/, '')}`;
     return `${baseUrl.replace(/\/?$/, '/')}#/event/${code}`;
+  }
+
+  private async generateAccessQr(): Promise<void> {
+    const baseUrl = environment.publicBaseUrl || `${location.origin}${location.pathname.replace(/admin\/?$/, '')}`;
+    const url = baseUrl.replace(/\/?$/, '/');
+    this.accessUrl.set(url);
+    this.accessQrDataUrl.set(await QRCode.toDataURL(url, { margin: 1, width: 256 }));
+  }
+
+  private async generateQr(event: EventSummary): Promise<string> {
+    const existing = this.qrByEvent()[event.id];
+    if (existing) {
+      return existing;
+    }
+
+    this.pendingQr.add(event.id);
+    const qr = await QRCode.toDataURL(this.eventUrl(event.code), { margin: 1, width: 220 });
+    this.qrByEvent.update((items) => ({ ...items, [event.id]: qr }));
+    this.pendingQr.delete(event.id);
+    return qr;
   }
 }

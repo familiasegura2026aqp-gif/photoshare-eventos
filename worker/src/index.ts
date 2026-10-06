@@ -36,6 +36,10 @@ export default {
         return json(await listPhotos(env, url.pathname.split('/').at(-1) ?? ''));
       }
 
+      if (request.method === 'POST' && url.pathname === '/create-event') {
+        return json(await createEvent(request, env), 201);
+      }
+
       if (request.method === 'POST' && url.pathname === '/upload') {
         return json(await uploadPhoto(request, env), 201);
       }
@@ -46,6 +50,30 @@ export default {
     }
   },
 };
+
+async function createEvent(request: Request, env: Env) {
+  const body = await request.json<{ code?: string; name?: string }>();
+  const name = String(body.name ?? '').trim();
+  const code = String(body.code ?? '').trim().toUpperCase();
+
+  if (!name || !code) {
+    throw new Error('name and code are required.');
+  }
+
+  const accessToken = await getGoogleAccessToken(env);
+  const folderId = await createDriveFolderByCode(env, accessToken, code);
+  const response = await supabaseFetch(env, '/rest/v1/events?select=id,name,code,created_at,drive_folder_id', {
+    body: JSON.stringify({
+      code,
+      drive_folder_id: folderId,
+      name,
+    }),
+    headers: { prefer: 'return=representation' },
+    method: 'POST',
+  });
+  const events = await response.json<unknown[]>();
+  return events[0];
+}
 
 async function uploadPhoto(request: Request, env: Env) {
   const form = await request.formData();
@@ -101,9 +129,20 @@ async function listPhotos(env: Env, eventCode: string) {
 }
 
 async function createDriveFolder(env: Env, accessToken: string, event: EventRecord): Promise<string> {
+  const folderId = await createDriveFolderByCode(env, accessToken, event.code);
+  await supabaseFetch(env, `/rest/v1/events?id=eq.${event.id}`, {
+    body: JSON.stringify({ drive_folder_id: folderId }),
+    headers: { prefer: 'return=minimal' },
+    method: 'PATCH',
+  });
+
+  return folderId;
+}
+
+async function createDriveFolderByCode(env: Env, accessToken: string, code: string): Promise<string> {
   const metadata = {
     mimeType: 'application/vnd.google-apps.folder',
-    name: event.code,
+    name: code,
     parents: env.GOOGLE_DRIVE_ROOT_FOLDER_ID ? [env.GOOGLE_DRIVE_ROOT_FOLDER_ID] : undefined,
   };
 
@@ -121,12 +160,6 @@ async function createDriveFolder(env: Env, accessToken: string, event: EventReco
   }
 
   const folder = await response.json<{ id: string }>();
-  await supabaseFetch(env, `/rest/v1/events?id=eq.${event.id}`, {
-    body: JSON.stringify({ drive_folder_id: folder.id }),
-    headers: { prefer: 'return=minimal' },
-    method: 'PATCH',
-  });
-
   return folder.id;
 }
 
@@ -197,7 +230,7 @@ async function getGoogleAccessToken(env: Env): Promise<string> {
       exp: now + 3600,
       iat: now,
       iss: env.GOOGLE_CLIENT_EMAIL,
-      scope: 'https://www.googleapis.com/auth/drive.file',
+      scope: 'https://www.googleapis.com/auth/drive',
     }),
   );
   const signature = await sign(`${header}.${claim}`, env.GOOGLE_PRIVATE_KEY);

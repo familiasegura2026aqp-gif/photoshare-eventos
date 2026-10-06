@@ -25,9 +25,20 @@
     </form>
   </section>
 
-  <section class="events guest-help">
-    <h2>Para organizadores</h2>
-    <p class="empty">Crea el evento, genera el QR y comparte el enlace con tus invitados.</p>
-    <a routerLink="/admin">Crear o ver eventos</a>
+  <section class="events">
+    <h2>Escoge un evento</h2>
+    @if (events().length) {
+      <div class="event-list">
+        @for (event of events(); track event.id) {
+          <a class="event-card" [routerLink]="['/event', event.code]">
+            <span>{{ event.code }}</span>
+            <strong>{{ event.name }}</strong>
+            <small>{{ event.photoCount }} fotos</small>
+          </a>
+        }
+      </div>
+    } @else {
+      <p class="empty">Aun no hay eventos disponibles.</p>
+    }
   </section>
 </main>

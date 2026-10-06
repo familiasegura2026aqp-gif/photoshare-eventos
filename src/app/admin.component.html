@@ -8,6 +8,18 @@
   </section>
 
   <section class="panel">
+    <h2>QR unico para invitados</h2>
+    <div class="qr-result">
+      <img [src]="accessQrDataUrl()" alt="QR general para invitados" />
+      <div>
+        <span>Acceso general</span>
+        <strong>Escoger evento</strong>
+        <small>{{ accessUrl() }}</small>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
     <form (ngSubmit)="createEvent()" class="creator">
       <label for="eventName">Nombre del evento</label>
       <div class="row">
@@ -42,6 +54,9 @@
       <div class="event-list">
         @for (event of events(); track event.id) {
           <article class="event-card">
+            @if (qrFor(event)) {
+              <img class="event-qr" [src]="qrFor(event)" [alt]="'QR de ' + event.name" />
+            }
             <span>{{ event.code }}</span>
             <strong>{{ event.name }}</strong>
             <small>{{ event.photoCount }} fotos</small>
