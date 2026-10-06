@@ -24,6 +24,7 @@ export class EventPageComponent {
     private readonly store: EventStoreService,
   ) {
     this.code.set(this.route.snapshot.paramMap.get('code') ?? '');
+    void this.store.loadPhotos(this.code());
   }
 
   protected async upload(event: Event): Promise<void> {
@@ -37,6 +38,7 @@ export class EventPageComponent {
     this.uploadMessage.set('');
     try {
       await this.store.addPhoto(this.code(), file, '');
+      await this.store.loadPhotos(this.code());
       this.uploadMessage.set('Foto subida correctamente.');
     } catch (error) {
       this.uploadMessage.set(error instanceof Error ? error.message : 'No se pudo subir la foto.');

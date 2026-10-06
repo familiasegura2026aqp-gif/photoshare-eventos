@@ -146,12 +146,14 @@ async function uploadPhoto(request: Request, env: Env) {
   const accessToken = await getGoogleAccessToken(env);
   const folderId = event.drive_folder_id || (await createDriveFolder(env, accessToken, event));
   const driveFile = await uploadToDrive(accessToken, folderId, file);
-  const photo = await createPhotoRecord(env, event.id, file.name, driveFile.id, uploaderName);
+  await makeDriveFileReadable(accessToken, driveFile.id);
+  const publicUrl = drivePublicUrl(driveFile.id);
+  const photo = await createPhotoRecord(env, event.id, file.name, driveFile.id, uploaderName, publicUrl);
 
   return {
     ...photo,
     drive_file_id: driveFile.id,
-    thumbnail_url: driveFile.thumbnailLink ?? null,
+    thumbnail_url: publicUrl,
   };
 }
 
@@ -170,7 +172,30 @@ async function listPhotos(env: Env, eventCode: string) {
     env,
     `/rest/v1/photos?events.code=eq.${encodeURIComponent(eventCode)}&select=${select}&order=created_at.desc`,
   );
-  return response.json();
+  const photos = await response.json<Array<{ drive_file_id: string; thumbnail_url: string | null }>>();
+  return photos.map((photo) => ({
+    ...photo,
+    thumbnail_url: photo.thumbnail_url || drivePublicUrl(photo.drive_file_id),
+  }));
+}
+
+async function makeDriveFileReadable(accessToken: string, fileId: string): Promise<void> {
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+    body: JSON.stringify({ role: 'reader', type: 'anyone' }),
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+      'content-type': 'application/json',
+    },
+    method: 'POST',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Google Drive permission failed: ${response.status} ${await response.text()}`);
+  }
+}
+
+function drivePublicUrl(fileId: string): string {
+  return `https://drive.google.com/uc?export=view&id=${fileId}`;
 }
 
 async function createDriveFolder(env: Env, accessToken: string, event: EventRecord): Promise<string> {
@@ -250,12 +275,14 @@ async function createPhotoRecord(
   filename: string,
   driveFileId: string,
   uploaderName: string,
+  thumbnailUrl: string,
 ) {
   const response = await supabaseFetch(env, '/rest/v1/photos?select=*', {
     body: JSON.stringify({
       drive_file_id: driveFileId,
       event_id: eventId,
       filename,
+      thumbnail_url: thumbnailUrl,
       uploader_name: uploaderName || null,
     }),
     headers: { prefer: 'return=representation' },

@@ -112,6 +112,44 @@ export class EventStoreService {
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
+  async loadPhotos(eventCode: string): Promise<void> {
+    if (!environment.apiBaseUrl) {
+      return;
+    }
+
+    const response = await fetch(`${environment.apiBaseUrl}/photos/${encodeURIComponent(eventCode)}`);
+    if (!response.ok) {
+      return;
+    }
+
+    const rows = (await response.json()) as Array<{
+      created_at: string;
+      filename: string;
+      id: string;
+      thumbnail_url: string | null;
+      uploader_name: string | null;
+    }>;
+    const remotePhotos = rows.map((row) => {
+      const mediaType = this.mediaTypeFromFilename(row.filename);
+      return {
+        id: row.id,
+        eventCode,
+        filename: row.filename,
+        dataUrl: row.thumbnail_url ?? '',
+        thumbnailUrl: row.thumbnail_url ?? '',
+        mediaType,
+        createdAt: row.created_at,
+        uploaderName: row.uploader_name ?? undefined,
+      } satisfies PhotoItem;
+    });
+    const otherPhotos = this.photosSignal().filter(
+      (photo) => photo.eventCode.toUpperCase() !== eventCode.toUpperCase(),
+    );
+
+    this.photosSignal.set([...remotePhotos, ...otherPhotos]);
+    this.persist(PHOTOS_KEY, this.photosSignal());
+  }
+
   async addPhoto(eventCode: string, file: File, uploaderName: string): Promise<PhotoItem> {
     const isVideo = file.type.startsWith('video/');
     const dataUrl = isVideo ? URL.createObjectURL(file) : await this.compressImage(file);
@@ -151,6 +189,10 @@ export class EventStoreService {
 
     const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
     return `${base || 'EVENTO'}${new Date().getFullYear()}${suffix}`;
+  }
+
+  private mediaTypeFromFilename(filename: string): 'image' | 'video' {
+    return /\.(mp4|mov|m4v|webm|avi|mkv)$/i.test(filename) ? 'video' : 'image';
   }
 
   private async loadEvents(): Promise<void> {
