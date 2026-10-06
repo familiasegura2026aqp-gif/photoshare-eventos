@@ -50,6 +50,9 @@
 
   <section class="events">
     <h2>Eventos creados</h2>
+    @if (statusMessage()) {
+      <p class="status-message">{{ statusMessage() }}</p>
+    }
     @if (events().length) {
       <div class="event-list">
         @for (event of events(); track event.id) {

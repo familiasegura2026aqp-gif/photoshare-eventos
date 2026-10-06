@@ -18,6 +18,7 @@ export class AdminComponent {
   protected readonly accessUrl = signal('');
   protected readonly editingCode = signal('');
   protected readonly editingName = signal('');
+  protected readonly statusMessage = signal('');
   protected readonly selectedEvent = signal<EventSummary | null>(null);
   protected readonly qrDataUrl = signal('');
   protected readonly selectedEventUrl = signal('');
@@ -58,6 +59,7 @@ export class AdminComponent {
   }
 
   protected startEdit(event: EventSummary): void {
+    this.statusMessage.set('');
     this.editingCode.set(event.code);
     this.editingName.set(event.name);
   }
@@ -73,8 +75,13 @@ export class AdminComponent {
       return;
     }
 
-    await this.store.renameEvent(event.code, name);
-    this.cancelEdit();
+    try {
+      await this.store.renameEvent(event.code, name);
+      this.statusMessage.set('Evento actualizado.');
+      this.cancelEdit();
+    } catch {
+      this.statusMessage.set('No se pudo actualizar el evento.');
+    }
   }
 
   protected async removeEvent(event: EventSummary): Promise<void> {
@@ -83,11 +90,16 @@ export class AdminComponent {
       return;
     }
 
-    await this.store.deleteEvent(event.code);
-    if (this.selectedEvent()?.code === event.code) {
-      this.selectedEvent.set(null);
-      this.qrDataUrl.set('');
-      this.selectedEventUrl.set('');
+    try {
+      await this.store.deleteEvent(event.code);
+      this.statusMessage.set('Evento eliminado.');
+      if (this.selectedEvent()?.code === event.code) {
+        this.selectedEvent.set(null);
+        this.qrDataUrl.set('');
+        this.selectedEventUrl.set('');
+      }
+    } catch {
+      this.statusMessage.set('No se pudo eliminar el evento.');
     }
   }
 

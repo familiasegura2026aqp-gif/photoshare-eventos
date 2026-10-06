@@ -210,6 +210,16 @@ a {
   color: #667789;
 }
 
+.status-message {
+  background: #e7f7f4;
+  border: 1px solid #9bd8cf;
+  border-radius: 8px;
+  color: #0f766e;
+  font-weight: 800;
+  margin: 0;
+  padding: 10px 12px;
+}
+
 @media (max-width: 640px) {
   .row,
   .qr-result {
