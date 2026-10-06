@@ -185,8 +185,25 @@ a {
   cursor: pointer;
 }
 
+.card-actions button.secondary {
+  background: #e7edf2;
+  color: #172033;
+}
+
+.card-actions button.danger {
+  background: #b42318;
+}
+
 .card-actions a {
   border: 1px solid #b7c3cc;
+}
+
+.edit-input {
+  border: 1px solid #b7c3cc;
+  border-radius: 8px;
+  font: inherit;
+  min-height: 40px;
+  padding: 0 10px;
 }
 
 .empty {

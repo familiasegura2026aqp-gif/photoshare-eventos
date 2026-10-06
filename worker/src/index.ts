@@ -40,6 +40,15 @@ export default {
         return json(await createEvent(request, env), 201);
       }
 
+      if (request.method === 'PATCH' && url.pathname.startsWith('/events/')) {
+        return json(await updateEvent(request, env, url.pathname.split('/').at(-1) ?? ''));
+      }
+
+      if (request.method === 'DELETE' && url.pathname.startsWith('/events/')) {
+        await deleteEvent(env, url.pathname.split('/').at(-1) ?? '');
+        return json({ ok: true });
+      }
+
       if (request.method === 'POST' && url.pathname === '/upload') {
         return json(await uploadPhoto(request, env), 201);
       }
@@ -50,6 +59,38 @@ export default {
     }
   },
 };
+
+async function updateEvent(request: Request, env: Env, code: string) {
+  const body = await request.json<{ name?: string }>();
+  const name = String(body.name ?? '').trim();
+
+  if (!code || !name) {
+    throw new Error('code and name are required.');
+  }
+
+  const response = await supabaseFetch(
+    env,
+    `/rest/v1/events?code=eq.${encodeURIComponent(code)}&select=id,name,code,created_at`,
+    {
+      body: JSON.stringify({ name }),
+      headers: { prefer: 'return=representation' },
+      method: 'PATCH',
+    },
+  );
+  const events = await response.json<unknown[]>();
+  return events[0] ?? null;
+}
+
+async function deleteEvent(env: Env, code: string): Promise<void> {
+  if (!code) {
+    throw new Error('code is required.');
+  }
+
+  await supabaseFetch(env, `/rest/v1/events?code=eq.${encodeURIComponent(code)}`, {
+    headers: { prefer: 'return=minimal' },
+    method: 'DELETE',
+  });
+}
 
 async function createEvent(request: Request, env: Env) {
   const body = await request.json<{ code?: string; name?: string }>();

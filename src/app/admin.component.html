@@ -58,11 +58,27 @@
               <img class="event-qr" [src]="qrFor(event)" [alt]="'QR de ' + event.name" />
             }
             <span>{{ event.code }}</span>
-            <strong>{{ event.name }}</strong>
+            @if (editingCode() === event.code) {
+              <input
+                class="edit-input"
+                name="editName-{{ event.id }}"
+                [ngModel]="editingName()"
+                (ngModelChange)="editingName.set($event)"
+              />
+            } @else {
+              <strong>{{ event.name }}</strong>
+            }
             <small>{{ event.photoCount }} fotos</small>
             <div class="card-actions">
-              <button type="button" (click)="showQr(event)">Ver QR</button>
-              <a [routerLink]="['/event', event.code]">Abrir</a>
+              @if (editingCode() === event.code) {
+                <button type="button" (click)="saveEdit(event)">Guardar</button>
+                <button type="button" class="secondary" (click)="cancelEdit()">Cancelar</button>
+              } @else {
+                <button type="button" (click)="showQr(event)">Ver QR</button>
+                <button type="button" class="secondary" (click)="startEdit(event)">Editar</button>
+                <button type="button" class="danger" (click)="removeEvent(event)">Eliminar</button>
+                <a [routerLink]="['/event', event.code]">Abrir</a>
+              }
             </div>
           </article>
         }

@@ -16,6 +16,8 @@ export class AdminComponent {
   protected readonly eventName = signal('');
   protected readonly accessQrDataUrl = signal('');
   protected readonly accessUrl = signal('');
+  protected readonly editingCode = signal('');
+  protected readonly editingName = signal('');
   protected readonly selectedEvent = signal<EventSummary | null>(null);
   protected readonly qrDataUrl = signal('');
   protected readonly selectedEventUrl = signal('');
@@ -53,6 +55,40 @@ export class AdminComponent {
     }
 
     return qr ?? '';
+  }
+
+  protected startEdit(event: EventSummary): void {
+    this.editingCode.set(event.code);
+    this.editingName.set(event.name);
+  }
+
+  protected cancelEdit(): void {
+    this.editingCode.set('');
+    this.editingName.set('');
+  }
+
+  protected async saveEdit(event: EventSummary): Promise<void> {
+    const name = this.editingName().trim();
+    if (!name) {
+      return;
+    }
+
+    await this.store.renameEvent(event.code, name);
+    this.cancelEdit();
+  }
+
+  protected async removeEvent(event: EventSummary): Promise<void> {
+    const confirmed = confirm(`Eliminar el evento "${event.name}"? Las fotos en Drive no se borraran.`);
+    if (!confirmed) {
+      return;
+    }
+
+    await this.store.deleteEvent(event.code);
+    if (this.selectedEvent()?.code === event.code) {
+      this.selectedEvent.set(null);
+      this.qrDataUrl.set('');
+      this.selectedEventUrl.set('');
+    }
   }
 
   protected eventUrl(code: string): string {

@@ -58,6 +58,50 @@ export class EventStoreService {
     return this.eventsSignal().find((event) => event.code.toUpperCase() === code.toUpperCase());
   }
 
+  async renameEvent(code: string, name: string): Promise<void> {
+    if (environment.apiBaseUrl) {
+      const response = await fetch(`${environment.apiBaseUrl}/events/${encodeURIComponent(code)}`, {
+        body: JSON.stringify({ name }),
+        headers: { 'content-type': 'application/json' },
+        method: 'PATCH',
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudo modificar el evento.');
+      }
+    } else {
+      const { error } = await supabase.from('events').update({ name }).eq('code', code);
+      if (error) {
+        throw error;
+      }
+    }
+
+    this.eventsSignal.update((events) =>
+      events.map((event) => (event.code === code ? { ...event, name } : event)),
+    );
+    this.persist(EVENTS_KEY, this.eventsSignal());
+  }
+
+  async deleteEvent(code: string): Promise<void> {
+    if (environment.apiBaseUrl) {
+      const response = await fetch(`${environment.apiBaseUrl}/events/${encodeURIComponent(code)}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudo eliminar el evento.');
+      }
+    } else {
+      const { error } = await supabase.from('events').delete().eq('code', code);
+      if (error) {
+        throw error;
+      }
+    }
+
+    this.eventsSignal.update((events) => events.filter((event) => event.code !== code));
+    this.persist(EVENTS_KEY, this.eventsSignal());
+  }
+
   listPhotos(eventCode: string): PhotoItem[] {
     return this.photosSignal()
       .filter((photo) => photo.eventCode.toUpperCase() === eventCode.toUpperCase())
