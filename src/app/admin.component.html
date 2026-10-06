@@ -29,6 +29,7 @@
         <div>
           <span>Codigo</span>
           <strong>{{ event.code }}</strong>
+          <small>{{ selectedEventUrl() }}</small>
           <a [routerLink]="['/event', event.code]">Abrir evento</a>
         </div>
       </div>
@@ -40,11 +41,15 @@
     @if (events().length) {
       <div class="event-list">
         @for (event of events(); track event.id) {
-          <a class="event-card" [routerLink]="['/event', event.code]">
+          <article class="event-card">
             <span>{{ event.code }}</span>
             <strong>{{ event.name }}</strong>
             <small>{{ event.photoCount }} fotos</small>
-          </a>
+            <div class="card-actions">
+              <button type="button" (click)="showQr(event)">Ver QR</button>
+              <a [routerLink]="['/event', event.code]">Abrir</a>
+            </div>
+          </article>
         }
       </div>
     } @else {

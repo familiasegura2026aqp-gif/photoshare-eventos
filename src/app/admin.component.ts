@@ -16,6 +16,7 @@ export class AdminComponent {
   protected readonly eventName = signal('');
   protected readonly selectedEvent = signal<EventSummary | null>(null);
   protected readonly qrDataUrl = signal('');
+  protected readonly selectedEventUrl = signal('');
   protected readonly events = computed(() => this.store.events());
 
   constructor(private readonly store: EventStoreService) {}
@@ -27,9 +28,15 @@ export class AdminComponent {
     }
 
     const event = await this.store.createEvent(name);
-    this.selectedEvent.set(event);
+    await this.showQr(event);
     this.eventName.set('');
-    this.qrDataUrl.set(await QRCode.toDataURL(this.eventUrl(event.code), { margin: 1, width: 256 }));
+  }
+
+  protected async showQr(event: EventSummary): Promise<void> {
+    const url = this.eventUrl(event.code);
+    this.selectedEvent.set(event);
+    this.selectedEventUrl.set(url);
+    this.qrDataUrl.set(await QRCode.toDataURL(url, { margin: 1, width: 256 }));
   }
 
   protected eventUrl(code: string): string {

@@ -118,6 +118,11 @@ button {
   font-size: 1.4rem;
 }
 
+.qr-result small {
+  color: #667789;
+  overflow-wrap: anywhere;
+}
+
 a {
   color: #0f766e;
   font-weight: 800;
@@ -145,6 +150,35 @@ a {
 
 .event-card strong {
   color: #172033;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.card-actions button,
+.card-actions a {
+  align-items: center;
+  border-radius: 8px;
+  display: inline-flex;
+  font-size: 0.92rem;
+  font-weight: 800;
+  min-height: 38px;
+  padding: 0 12px;
+}
+
+.card-actions button {
+  background: #172033;
+  border: 0;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.card-actions a {
+  border: 1px solid #b7c3cc;
 }
 
 .empty {
