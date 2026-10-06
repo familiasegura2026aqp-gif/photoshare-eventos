@@ -36,9 +36,14 @@ export class AdminComponent {
       return;
     }
 
-    const event = await this.store.createEvent(name);
-    await this.showQr(event);
-    this.eventName.set('');
+    try {
+      const event = await this.store.createEvent(name);
+      await this.showQr(event);
+      this.eventName.set('');
+      this.statusMessage.set('Evento creado correctamente.');
+    } catch (error) {
+      this.statusMessage.set(error instanceof Error ? error.message : 'No se pudo crear el evento.');
+    }
   }
 
   protected async showQr(event: EventSummary): Promise<void> {

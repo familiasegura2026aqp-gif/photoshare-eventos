@@ -15,6 +15,7 @@ export class EventPageComponent {
   protected readonly code = signal('');
   protected readonly uploaderName = signal('');
   protected readonly isUploading = signal(false);
+  protected readonly uploadMessage = signal('');
   protected readonly selectedPhoto = signal<PhotoItem | null>(null);
   protected readonly event = computed(() => this.store.findEvent(this.code()));
   protected readonly photos = computed(() => this.store.listPhotos(this.code()));
@@ -34,8 +35,12 @@ export class EventPageComponent {
     }
 
     this.isUploading.set(true);
+    this.uploadMessage.set('');
     try {
       await this.store.addPhoto(this.code(), file, this.uploaderName());
+      this.uploadMessage.set('Foto subida correctamente.');
+    } catch (error) {
+      this.uploadMessage.set(error instanceof Error ? error.message : 'No se pudo subir la foto.');
     } finally {
       input.value = '';
       this.isUploading.set(false);

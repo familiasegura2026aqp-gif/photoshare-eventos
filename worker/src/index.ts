@@ -197,7 +197,7 @@ async function createDriveFolderByCode(env: Env, accessToken: string, code: stri
   });
 
   if (!response.ok) {
-    throw new Error(`Google Drive folder creation failed: ${response.status}`);
+    throw new Error(`Google Drive folder creation failed: ${response.status} ${await response.text()}`);
   }
 
   const folder = await response.json<{ id: string }>();
@@ -234,7 +234,7 @@ async function uploadToDrive(accessToken: string, folderId: string, file: File) 
   );
 
   if (!response.ok) {
-    throw new Error(`Google Drive upload failed: ${response.status}`);
+    throw new Error(`Google Drive upload failed: ${response.status} ${await response.text()}`);
   }
 
   return response.json<{ id: string; thumbnailLink?: string }>();
@@ -296,10 +296,10 @@ async function getGoogleAccessToken(env: Env): Promise<string> {
 
 async function sign(input: string, privateKey: string): Promise<string> {
   const normalizedKey = privateKey.replace(/\\n/g, '\n');
-  const pem = normalizedKey
-    .replace('-----BEGIN PRIVATE KEY-----', '')
-    .replace('-----END PRIVATE KEY-----', '')
-    .replace(/\s/g, '');
+  const match = normalizedKey.match(
+    /-----BEGIN PRIVATE KEY-----([\s\S]*?)-----END PRIVATE KEY-----/,
+  );
+  const pem = (match?.[1] ?? normalizedKey).replace(/[^A-Za-z0-9+/=]/g, '');
   const keyData = Uint8Array.from(atob(pem), (character) => character.charCodeAt(0));
   const cryptoKey = await crypto.subtle.importKey(
     'pkcs8',

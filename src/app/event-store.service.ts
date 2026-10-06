@@ -27,6 +27,10 @@ export class EventStoreService {
       return apiEvent;
     }
 
+    if (environment.apiBaseUrl) {
+      throw new Error('No se pudo crear el evento en Drive. Revisa la configuracion del backend.');
+    }
+
     const { data, error } = await supabase
       .from('events')
       .insert({ name, code })
@@ -110,7 +114,8 @@ export class EventStoreService {
 
   async addPhoto(eventCode: string, file: File, uploaderName: string): Promise<PhotoItem> {
     const dataUrl = await this.compressImage(file);
-    await this.uploadToApi(eventCode, file, uploaderName);
+    const uploadFile = this.dataUrlToFile(dataUrl, file.name);
+    await this.uploadToApi(eventCode, uploadFile, uploaderName);
     const photo: PhotoItem = {
       id: crypto.randomUUID(),
       eventCode,
@@ -249,8 +254,23 @@ export class EventStoreService {
     });
 
     if (!response.ok) {
-      throw new Error('No se pudo subir la foto al servidor.');
+      const error = (await response.json().catch(() => null)) as { message?: string } | null;
+      throw new Error(error?.message || 'No se pudo subir la foto al servidor.');
     }
+  }
+
+  private dataUrlToFile(dataUrl: string, originalName: string): File {
+    const [header, base64] = dataUrl.split(',');
+    const mime = header.match(/data:(.*);base64/)?.[1] ?? 'image/jpeg';
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+
+    const filename = originalName.replace(/\.[^.]+$/, '') || 'photo';
+    return new File([bytes], `${filename}.jpg`, { type: mime });
   }
 
   private read<T>(key: string, fallback: T): T {
