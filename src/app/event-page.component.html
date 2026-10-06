@@ -1,0 +1,65 @@
+<main class="event-shell">
+  <a routerLink="/" class="back">Volver</a>
+
+  @if (event(); as eventInfo) {
+    <header>
+      <p>{{ eventInfo.code }}</p>
+      <h1>{{ eventInfo.name }}</h1>
+    </header>
+
+    <section class="upload-panel">
+      <label for="uploaderName">Tu nombre opcional</label>
+      <input
+        id="uploaderName"
+        name="uploaderName"
+        type="text"
+        placeholder="Ej. Maria"
+        [ngModel]="uploaderName()"
+        (ngModelChange)="uploaderName.set($event)"
+      />
+
+      <label class="file-action">
+        <input type="file" accept="image/*" capture="environment" (change)="upload($event)" />
+        <span>{{ isUploading() ? 'Subiendo...' : 'Tomar o subir foto' }}</span>
+      </label>
+    </section>
+
+    <section class="gallery">
+      <div class="gallery-header">
+        <h2>Galeria</h2>
+        <span>{{ photos().length }} fotos</span>
+      </div>
+
+      @if (photos().length) {
+        <div class="grid">
+          @for (photo of photos(); track photo.id) {
+            <button type="button" class="photo" (click)="selectedPhoto.set(photo)">
+              <img [src]="photo.thumbnailUrl" [alt]="photo.filename" />
+              <span>{{ photo.uploaderName || 'Invitado' }}</span>
+            </button>
+          }
+        </div>
+      } @else {
+        <p class="empty">Las fotos apareceran aqui cuando los invitados empiecen a subirlas.</p>
+      }
+    </section>
+
+    @if (selectedPhoto(); as photo) {
+      <div class="lightbox" role="dialog" aria-modal="true" (click)="selectedPhoto.set(null)">
+        <figure (click)="$event.stopPropagation()">
+          <button type="button" (click)="selectedPhoto.set(null)">Cerrar</button>
+          <img [src]="photo.dataUrl" [alt]="photo.filename" />
+          <figcaption>
+            {{ photo.uploaderName || 'Invitado' }} - {{ photo.createdAt | date: 'short' }}
+          </figcaption>
+        </figure>
+      </div>
+    }
+  } @else {
+    <section class="missing">
+      <h1>Evento no encontrado</h1>
+      <p>Revisa el codigo del enlace o crea un evento nuevo.</p>
+      <a routerLink="/">Crear evento</a>
+    </section>
+  }
+</main>

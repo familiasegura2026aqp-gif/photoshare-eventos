@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "photoshare-eventos-api",
+  "main": "worker/src/index.ts",
+  "compatibility_date": "2026-10-06",
+  "workers_dev": true,
+  "vars": {
+    "GOOGLE_DRIVE_ROOT_FOLDER_ID": "1KqS6pfp9yyt5NA400nsJtQQvr5zHKdsE",
+    "SUPABASE_URL": "https://prlhcvxhmtgslmuprdzg.supabase.co"
+  }
+}
