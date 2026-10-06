@@ -61,6 +61,12 @@ input[type='text'] {
   padding: 0 14px;
 }
 
+.media-actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .file-action {
   align-items: center;
   background: #0f766e;
@@ -71,10 +77,21 @@ input[type='text'] {
   justify-content: center;
   min-height: 56px;
   padding: 0 18px;
+  text-align: center;
 }
 
 .file-action input {
   display: none;
+}
+
+.file-action.secondary {
+  background: #172033;
+}
+
+@media (max-width: 680px) {
+  .media-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 .gallery-header {

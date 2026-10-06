@@ -8,10 +8,22 @@
     </header>
 
     <section class="upload-panel">
-      <label class="file-action">
-        <input type="file" accept="image/*,video/*" (change)="upload($event)" />
-        <span>{{ isUploading() ? 'Subiendo...' : 'Tomar foto, grabar video o subir archivo' }}</span>
-      </label>
+      <div class="media-actions">
+        <label class="file-action">
+          <input type="file" accept="image/*" capture="environment" (change)="upload($event)" />
+          <span>{{ isUploading() ? 'Subiendo...' : 'Tomar foto' }}</span>
+        </label>
+
+        <label class="file-action">
+          <input type="file" accept="video/*" capture="environment" (change)="upload($event)" />
+          <span>{{ isUploading() ? 'Subiendo...' : 'Grabar video' }}</span>
+        </label>
+
+        <label class="file-action secondary">
+          <input type="file" accept="image/*,video/*" (change)="upload($event)" />
+          <span>{{ isUploading() ? 'Subiendo...' : 'Subir archivo' }}</span>
+        </label>
+      </div>
 
       @if (uploadMessage()) {
         <p class="status-message">{{ uploadMessage() }}</p>
