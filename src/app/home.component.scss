@@ -39,32 +39,6 @@ h1 {
   max-width: 620px;
 }
 
-.guest-shell {
-  gap: 18px;
-  max-width: 520px;
-  min-height: 100vh;
-  padding: 22px 14px 32px;
-}
-
-.guest-shell .intro {
-  gap: 6px;
-  padding: 4px 2px 0;
-}
-
-.guest-shell h1 {
-  color: #172033;
-  font-size: 2.35rem;
-  line-height: 1;
-  max-width: 360px;
-}
-
-.guest-shell .intro p:last-child {
-  color: #526070;
-  font-size: 0.98rem;
-  line-height: 1.35;
-  max-width: 330px;
-}
-
 .panel,
 .events {
   background: #ffffff;
@@ -176,67 +150,6 @@ a {
 
 .event-card strong {
   color: #172033;
-}
-
-.guest-events {
-  border: 0;
-  border-radius: 8px;
-  box-shadow: 0 16px 38px rgba(23, 32, 51, 0.08);
-  padding: 12px;
-}
-
-.guest-events .event-list {
-  gap: 10px;
-  grid-template-columns: 1fr;
-}
-
-.guest-events .event-card {
-  align-items: center;
-  background: #ffffff;
-  border-color: #cbd8df;
-  box-shadow: 0 8px 20px rgba(23, 32, 51, 0.06);
-  gap: 12px;
-  grid-template-columns: 1fr auto;
-  min-height: 76px;
-  padding: 16px;
-}
-
-.guest-events .event-card div {
-  display: grid;
-  gap: 5px;
-}
-
-.guest-events .event-name {
-  color: #172033;
-  font-size: 1.12rem;
-  font-weight: 900;
-}
-
-.guest-events .event-card small {
-  color: #667789;
-  font-size: 0.9rem;
-}
-
-.guest-events .event-enter {
-  align-items: center;
-  background: #0f766e;
-  border-radius: 8px;
-  color: #ffffff;
-  display: inline-flex;
-  font-size: 0.9rem;
-  font-weight: 900;
-  min-height: 42px;
-  padding: 0 14px;
-}
-
-@media (min-width: 700px) {
-  .guest-shell {
-    padding-top: 40px;
-  }
-
-  .guest-shell h1 {
-    font-size: 3.2rem;
-  }
 }
 
 .event-qr {
