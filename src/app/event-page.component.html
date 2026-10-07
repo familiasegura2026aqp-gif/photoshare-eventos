@@ -10,8 +10,13 @@
     <section class="upload-panel">
       <div class="media-actions">
         <label class="file-action">
-          <input type="file" accept="image/*,video/*" capture="environment" (change)="upload($event)" />
-          <span>{{ isUploading() ? 'Subiendo...' : 'Abrir camara' }}</span>
+          <input type="file" accept="image/*" capture="environment" (change)="upload($event)" />
+          <span>{{ isUploading() ? 'Subiendo...' : 'Tomar foto' }}</span>
+        </label>
+
+        <label class="file-action">
+          <input type="file" accept="video/*" capture="environment" (change)="upload($event)" />
+          <span>{{ isUploading() ? 'Subiendo...' : 'Grabar video' }}</span>
         </label>
 
         <label class="file-action secondary">
