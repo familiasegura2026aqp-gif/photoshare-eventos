@@ -1,20 +1,20 @@
 <main class="shell guest-shell">
   <section class="intro">
     <p class="eyebrow">PhotoShare para invitados</p>
-    <h1>Escanea el QR y escoge tu evento.</h1>
     <p>
-      Sube tus fotos desde el celular y miralas junto con las de todos los invitados.
+      Selecciona tu evento y comparte tus fotos o videos.
     </p>
   </section>
 
-  <section class="events">
-    <h2>Escoge un evento</h2>
+  <section class="events guest-events">
+    <h2>Eventos disponibles</h2>
     @if (events().length) {
       <div class="event-list">
         @for (event of events(); track event.id) {
           <a class="event-card" [routerLink]="['/event', event.code]">
-            <strong>{{ event.name }}</strong>
-            <small>{{ event.photoCount }} fotos</small>
+            <span class="event-name">{{ event.name }}</span>
+            <small>{{ event.photoCount }} archivos</small>
+            <span class="event-enter">Entrar</span>
           </a>
         }
       </div>

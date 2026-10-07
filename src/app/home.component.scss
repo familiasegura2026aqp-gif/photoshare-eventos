@@ -39,6 +39,20 @@ h1 {
   max-width: 620px;
 }
 
+.guest-shell {
+  max-width: 560px;
+  min-height: 100vh;
+  padding: 24px 16px 40px;
+}
+
+.guest-shell .intro {
+  gap: 8px;
+}
+
+.guest-shell .intro p:last-child {
+  font-size: 1rem;
+}
+
 .panel,
 .events {
   background: #ffffff;
@@ -150,6 +164,54 @@ a {
 
 .event-card strong {
   color: #172033;
+}
+
+.guest-events {
+  border: 0;
+  box-shadow: 0 16px 38px rgba(23, 32, 51, 0.08);
+  padding: 18px;
+}
+
+.guest-events h2 {
+  font-size: 1.2rem;
+}
+
+.guest-events .event-list {
+  grid-template-columns: 1fr;
+}
+
+.guest-events .event-card {
+  align-items: center;
+  background: #f8fbfc;
+  border-color: #cbd8df;
+  gap: 8px;
+  grid-template-columns: 1fr auto;
+  min-height: 82px;
+  padding: 16px;
+}
+
+.guest-events .event-name {
+  color: #172033;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.guest-events .event-card small {
+  grid-column: 1;
+}
+
+.guest-events .event-enter {
+  align-items: center;
+  background: #0f766e;
+  border-radius: 8px;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 900;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  min-height: 42px;
+  padding: 0 14px;
 }
 
 .event-qr {
