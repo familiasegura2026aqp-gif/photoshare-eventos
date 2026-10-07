@@ -40,17 +40,29 @@ h1 {
 }
 
 .guest-shell {
-  max-width: 560px;
+  gap: 18px;
+  max-width: 520px;
   min-height: 100vh;
-  padding: 24px 16px 40px;
+  padding: 22px 14px 32px;
 }
 
 .guest-shell .intro {
-  gap: 8px;
+  gap: 6px;
+  padding: 4px 2px 0;
+}
+
+.guest-shell h1 {
+  color: #172033;
+  font-size: 2.35rem;
+  line-height: 1;
+  max-width: 360px;
 }
 
 .guest-shell .intro p:last-child {
-  font-size: 1rem;
+  color: #526070;
+  font-size: 0.98rem;
+  line-height: 1.35;
+  max-width: 330px;
 }
 
 .panel,
@@ -168,36 +180,41 @@ a {
 
 .guest-events {
   border: 0;
+  border-radius: 8px;
   box-shadow: 0 16px 38px rgba(23, 32, 51, 0.08);
-  padding: 18px;
-}
-
-.guest-events h2 {
-  font-size: 1.2rem;
+  padding: 12px;
 }
 
 .guest-events .event-list {
+  gap: 10px;
   grid-template-columns: 1fr;
 }
 
 .guest-events .event-card {
   align-items: center;
-  background: #f8fbfc;
+  background: #ffffff;
   border-color: #cbd8df;
-  gap: 8px;
+  box-shadow: 0 8px 20px rgba(23, 32, 51, 0.06);
+  gap: 12px;
   grid-template-columns: 1fr auto;
-  min-height: 82px;
+  min-height: 76px;
   padding: 16px;
+}
+
+.guest-events .event-card div {
+  display: grid;
+  gap: 5px;
 }
 
 .guest-events .event-name {
   color: #172033;
-  font-size: 1.1rem;
+  font-size: 1.12rem;
   font-weight: 900;
 }
 
 .guest-events .event-card small {
-  grid-column: 1;
+  color: #667789;
+  font-size: 0.9rem;
 }
 
 .guest-events .event-enter {
@@ -208,10 +225,18 @@ a {
   display: inline-flex;
   font-size: 0.9rem;
   font-weight: 900;
-  grid-column: 2;
-  grid-row: 1 / span 2;
   min-height: 42px;
   padding: 0 14px;
+}
+
+@media (min-width: 700px) {
+  .guest-shell {
+    padding-top: 40px;
+  }
+
+  .guest-shell h1 {
+    font-size: 3.2rem;
+  }
 }
 
 .event-qr {
