@@ -152,8 +152,9 @@ export class EventStoreService {
 
   async addPhoto(eventCode: string, file: File, uploaderName: string): Promise<PhotoItem> {
     const isVideo = file.type.startsWith('video/');
-    const dataUrl = isVideo ? URL.createObjectURL(file) : await this.compressImage(file);
-    const uploadFile = isVideo ? file : this.dataUrlToFile(dataUrl, file.name);
+    const preparedFile = isVideo ? { previewUrl: URL.createObjectURL(file), uploadFile: file } : await this.prepareImage(file);
+    const dataUrl = preparedFile.previewUrl;
+    const uploadFile = preparedFile.uploadFile;
     await this.uploadToApi(eventCode, uploadFile, uploaderName);
     const photo: PhotoItem = {
       id: crypto.randomUUID(),
@@ -280,6 +281,21 @@ export class EventStoreService {
       };
       reader.readAsDataURL(file);
     });
+  }
+
+  private async prepareImage(file: File): Promise<{ previewUrl: string; uploadFile: File }> {
+    try {
+      const dataUrl = await this.compressImage(file);
+      return {
+        previewUrl: dataUrl,
+        uploadFile: this.dataUrlToFile(dataUrl, file.name),
+      };
+    } catch {
+      return {
+        previewUrl: URL.createObjectURL(file),
+        uploadFile: file,
+      };
+    }
   }
 
   private async uploadToApi(eventCode: string, file: File, uploaderName: string): Promise<void> {

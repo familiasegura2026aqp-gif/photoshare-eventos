@@ -39,9 +39,13 @@ export class EventPageComponent {
     try {
       await this.store.addPhoto(this.code(), file, '');
       await this.store.loadPhotos(this.code());
-      this.uploadMessage.set('Foto subida correctamente.');
+      this.uploadMessage.set('Archivo subido correctamente.');
     } catch (error) {
-      this.uploadMessage.set(error instanceof Error ? error.message : 'No se pudo subir la foto.');
+      const sizeMb = (file.size / 1024 / 1024).toFixed(1);
+      const detail = `${file.name || 'archivo'} (${sizeMb} MB)`;
+      this.uploadMessage.set(
+        error instanceof Error ? `${error.message} ${detail}` : `No se pudo subir el archivo. ${detail}`,
+      );
     } finally {
       input.value = '';
       this.isUploading.set(false);

@@ -133,7 +133,10 @@ async function uploadPhoto(request: Request, env: Env) {
     throw new Error('eventCode and file are required.');
   }
 
-  const isSupportedMedia = file.type.startsWith('image/') || file.type.startsWith('video/');
+  const isSupportedMedia =
+    file.type.startsWith('image/') ||
+    file.type.startsWith('video/') ||
+    /\.(jpg|jpeg|png|gif|webp|heic|heif|mp4|mov|m4v|webm)$/i.test(file.name);
   if (!isSupportedMedia) {
     throw new Error('Only image and video uploads are allowed.');
   }
