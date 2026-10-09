@@ -177,11 +177,47 @@ async function listPhotos(env: Env, eventCode: string) {
     env,
     `/rest/v1/photos?events.code=eq.${encodeURIComponent(eventCode)}&select=${select}&order=created_at.desc`,
   );
-  const photos = await response.json<Array<{ drive_file_id: string; thumbnail_url: string | null }>>();
-  return photos.map((photo) => ({
+  const photos = await response.json<Array<{ drive_file_id: string; id: string; thumbnail_url: string | null }>>();
+  const accessToken = await getGoogleAccessToken(env);
+  const existingPhotos = [];
+
+  for (const photo of photos) {
+    const exists = await driveFileExists(accessToken, photo.drive_file_id);
+    if (exists) {
+      existingPhotos.push(photo);
+    } else {
+      await deletePhotoRecord(env, photo.id);
+    }
+  }
+
+  return existingPhotos.map((photo) => ({
     ...photo,
     thumbnail_url: photo.thumbnail_url || mediaProxyUrl('', photo.drive_file_id),
   }));
+}
+
+async function driveFileExists(accessToken: string, fileId: string): Promise<boolean> {
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=id,trashed`, {
+    headers: { authorization: `Bearer ${accessToken}` },
+  });
+
+  if (response.status === 404 || response.status === 410) {
+    return false;
+  }
+
+  if (!response.ok) {
+    return true;
+  }
+
+  const file = await response.json<{ trashed?: boolean }>();
+  return file.trashed !== true;
+}
+
+async function deletePhotoRecord(env: Env, photoId: string): Promise<void> {
+  await supabaseFetch(env, `/rest/v1/photos?id=eq.${photoId}`, {
+    headers: { prefer: 'return=minimal' },
+    method: 'DELETE',
+  });
 }
 
 async function proxyDriveMedia(env: Env, fileId: string): Promise<Response> {
