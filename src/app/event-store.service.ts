@@ -152,10 +152,8 @@ export class EventStoreService {
 
   async addPhoto(eventCode: string, file: File, uploaderName: string): Promise<PhotoItem> {
     const isVideo = file.type.startsWith('video/');
-    const preparedFile = isVideo ? { previewUrl: URL.createObjectURL(file), uploadFile: file } : await this.prepareImage(file);
-    const dataUrl = preparedFile.previewUrl;
-    const uploadFile = preparedFile.uploadFile;
-    await this.uploadToApi(eventCode, uploadFile, uploaderName);
+    const dataUrl = URL.createObjectURL(file);
+    await this.uploadToApi(eventCode, file, uploaderName);
     const photo: PhotoItem = {
       id: crypto.randomUUID(),
       eventCode,
@@ -253,51 +251,6 @@ export class EventStoreService {
     }
   }
 
-  private compressImage(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onerror = () => reject(reader.error);
-      reader.onload = () => {
-        const image = new Image();
-        image.onerror = () => reject(new Error('No se pudo leer la imagen seleccionada.'));
-        image.onload = () => {
-          const maxWidth = 1920;
-          const maxHeight = 1080;
-          const ratio = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
-          const canvas = document.createElement('canvas');
-          canvas.width = Math.round(image.width * ratio);
-          canvas.height = Math.round(image.height * ratio);
-
-          const context = canvas.getContext('2d');
-          if (!context) {
-            reject(new Error('No se pudo preparar la imagen.'));
-            return;
-          }
-
-          context.drawImage(image, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL('image/jpeg', 0.75));
-        };
-        image.src = String(reader.result);
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  private async prepareImage(file: File): Promise<{ previewUrl: string; uploadFile: File }> {
-    try {
-      const dataUrl = await this.compressImage(file);
-      return {
-        previewUrl: dataUrl,
-        uploadFile: this.dataUrlToFile(dataUrl, file.name),
-      };
-    } catch {
-      return {
-        previewUrl: URL.createObjectURL(file),
-        uploadFile: file,
-      };
-    }
-  }
-
   private async uploadToApi(eventCode: string, file: File, uploaderName: string): Promise<void> {
     if (!environment.apiBaseUrl) {
       return;
@@ -317,20 +270,6 @@ export class EventStoreService {
       const error = (await response.json().catch(() => null)) as { message?: string } | null;
       throw new Error(error?.message || 'No se pudo subir el archivo al servidor.');
     }
-  }
-
-  private dataUrlToFile(dataUrl: string, originalName: string): File {
-    const [header, base64] = dataUrl.split(',');
-    const mime = header.match(/data:(.*);base64/)?.[1] ?? 'image/jpeg';
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-
-    for (let index = 0; index < binary.length; index += 1) {
-      bytes[index] = binary.charCodeAt(index);
-    }
-
-    const filename = originalName.replace(/\.[^.]+$/, '') || 'photo';
-    return new File([bytes], `${filename}.jpg`, { type: mime });
   }
 
   private read<T>(key: string, fallback: T): T {
