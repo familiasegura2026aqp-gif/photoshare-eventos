@@ -51,4 +51,22 @@ export class EventPageComponent {
       this.isUploading.set(false);
     }
   }
+
+  protected async downloadPhoto(photo: PhotoItem): Promise<void> {
+    const response = await fetch(photo.dataUrl);
+    if (!response.ok) {
+      this.uploadMessage.set('No se pudo descargar el archivo.');
+      return;
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = photo.filename || 'photoshare-archivo';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
 }

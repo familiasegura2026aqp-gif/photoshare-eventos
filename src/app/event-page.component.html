@@ -57,7 +57,10 @@
     @if (selectedPhoto(); as photo) {
       <div class="lightbox" role="dialog" aria-modal="true" (click)="selectedPhoto.set(null)">
         <figure (click)="$event.stopPropagation()">
-          <button type="button" (click)="selectedPhoto.set(null)">Cerrar</button>
+          <div class="lightbox-actions">
+            <button type="button" (click)="downloadPhoto(photo)">Descargar</button>
+            <button type="button" (click)="selectedPhoto.set(null)">Cerrar</button>
+          </div>
           @if (photo.mediaType === 'video') {
             <video [src]="photo.dataUrl" controls playsinline></video>
           } @else {

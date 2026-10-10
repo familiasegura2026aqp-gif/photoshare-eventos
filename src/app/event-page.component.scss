@@ -156,6 +156,12 @@ figure {
   width: min(100%, 860px);
 }
 
+.lightbox-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 figure button {
   background: #172033;
   border: 0;
