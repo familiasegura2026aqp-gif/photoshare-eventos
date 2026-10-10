@@ -155,7 +155,7 @@ async function uploadPhoto(request: Request, env: Env) {
   const driveFile = await uploadToDrive(accessToken, folderId, file);
   await makeDriveFileReadable(accessToken, driveFile.id);
   const mediaUrl = mediaProxyUrl(request.url, driveFile.id);
-  const thumbnailUrl = driveFile.thumbnailLink || mediaUrl;
+  const thumbnailUrl = mediaUrl;
   const photo = await createPhotoRecord(env, event.id, file.name, driveFile.id, uploaderName, thumbnailUrl);
 
   return {
@@ -195,7 +195,7 @@ async function listPhotos(env: Env, eventCode: string) {
 
   return existingPhotos.map((photo) => ({
     ...photo,
-    thumbnail_url: photo.thumbnail_url || mediaProxyUrl('', photo.drive_file_id),
+    thumbnail_url: mediaProxyUrl('', photo.drive_file_id),
   }));
 }
 
