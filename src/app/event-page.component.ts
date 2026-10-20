@@ -29,22 +29,30 @@ export class EventPageComponent {
 
   protected async upload(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) {
+    const files = Array.from(input.files ?? []);
+    if (!files.length) {
       return;
     }
 
     this.isUploading.set(true);
     this.uploadMessage.set('');
+    let uploaded = 0;
+    const failures: string[] = [];
     try {
-      await this.store.addPhoto(this.code(), file, '');
+      for (const [index, file] of files.entries()) {
+        this.uploadMessage.set(`Subiendo ${index + 1} de ${files.length}: ${file.name}`);
+        try {
+          await this.store.addPhoto(this.code(), file, '');
+          uploaded += 1;
+        } catch (error) {
+          failures.push(error instanceof Error ? `${file.name}: ${error.message}` : file.name);
+        }
+      }
       await this.store.loadPhotos(this.code());
-      this.uploadMessage.set('Archivo subido correctamente.');
-    } catch (error) {
-      const sizeMb = (file.size / 1024 / 1024).toFixed(1);
-      const detail = `${file.name || 'archivo'} (${sizeMb} MB)`;
       this.uploadMessage.set(
-        error instanceof Error ? `${error.message} ${detail}` : `No se pudo subir el archivo. ${detail}`,
+        failures.length
+          ? `${uploaded} de ${files.length} archivos subidos. No se pudieron subir: ${failures.join(' | ')}`
+          : `${uploaded} archivo${uploaded === 1 ? '' : 's'} subido${uploaded === 1 ? '' : 's'} correctamente.`,
       );
     } finally {
       input.value = '';

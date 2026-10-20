@@ -1,0 +1,166 @@
+<main class="family-shell">
+  <header class="family-header">
+    <div>
+      <p class="eyebrow">Panel familiar</p>
+      <h1>Arbol genealogico</h1>
+      <p>Explora una familia a la vez: selecciona a una persona para ver a su pareja e hijos.</p>
+    </div>
+    <a routerLink="/admin">Volver al panel</a>
+  </header>
+
+  <section class="family-layout">
+    <aside class="editor">
+      <h2>{{ formMode() === 'parent' ? 'Agregar padre o madre' : formMode() === 'partner' ? 'Agregar pareja' : isAddingRoot() ? 'Persona raiz' : parentId() ? 'Agregar hijo o hija' : 'Nueva persona raiz' }}</h2>
+      @if (parentId()) {
+        <p class="hint">{{ formMode() === 'parent' ? 'Se vinculara como padre o madre de' : formMode() === 'partner' ? 'Se vinculara como pareja de' : 'Se vinculara como descendiente de' }} {{ fullName(selectedMember()!) }}.</p>
+      }
+      <form (ngSubmit)="saveMember()">
+        <label for="firstName">Nombres</label>
+        <input id="firstName" name="firstName" [ngModel]="firstName()" (ngModelChange)="firstName.set($event)" required />
+        <label for="lastName">Apellidos</label>
+        <input id="lastName" name="lastName" [ngModel]="lastName()" (ngModelChange)="lastName.set($event)" />
+        <label for="birthDate">Fecha de nacimiento <span>Opcional</span></label>
+        <input id="birthDate" name="birthDate" type="date" [ngModel]="birthDate()" (ngModelChange)="birthDate.set($event)" />
+        <label for="notes">Notas <span>Opcional</span></label>
+        <textarea id="notes" name="notes" rows="3" [ngModel]="notes()" (ngModelChange)="notes.set($event)"></textarea>
+        <label for="profilePhoto">Foto <span>Opcional</span></label>
+        <div class="photo-input">
+          @if (photoUrl()) { <img [src]="photoUrl()" alt="Vista previa de la foto" /> } @else { <span>Sin foto</span> }
+          <input id="profilePhoto" type="file" accept="image/*" (change)="onPhotoSelected($event)" />
+        </div>
+        <div class="form-actions">
+          <button type="submit">Guardar</button>
+          @if (parentId()) { <button type="button" class="secondary" (click)="cancelAdd()">Cancelar</button> }
+        </div>
+      </form>
+      @if (message()) { <p class="message">{{ message() }}</p> }
+    </aside>
+
+    <section class="tree-panel">
+      <div class="tree-title"><h2>Tu familia</h2><div class="tree-tools"><input placeholder="Buscar persona" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" />@if (!readOnly) { <button type="button" (click)="exportImage()">Imagen</button><button type="button" (click)="exportPdf()">PDF</button><button type="button" (click)="showShare.set(true)">Compartir</button> }</div></div>
+      @if (searchResults().length) { <div class="search-results">@for (person of searchResults(); track person.id) { <button type="button" (click)="selectMember(person); searchQuery.set('')">{{ fullName(person) }}</button> }</div> }
+      @if (!members().length) {
+        <div class="empty-tree"><p>Agrega a la persona que iniciara el arbol familiar.</p><button type="button" (click)="openAddRoot()">Crear persona raiz</button></div>
+      } @else if (focusedMember(); as focus) {
+        <div class="family-view">
+          @if (parentOf(focus); as parent) {
+            <div class="family-nav"><button type="button" class="back-button" (click)="selectMember(parent)">Ver familia de {{ parent.firstName }}</button></div>
+          }
+
+          <section class="focus-family">
+            <div class="person-card-wrap">
+            <button type="button" class="focus-card" (click)="selectMember(focus)">
+              @if (focus.photoUrl) { <img class="profile-photo clickable-photo" [src]="focus.photoUrl" [alt]="fullName(focus)" (click)="openPhoto(focus, $event)" /> } @else { <span class="avatar">{{ initials(focus) }}</span> }
+              <strong>{{ fullName(focus) }}</strong>
+              @if (focus.birthDate) { <small>{{ focus.birthDate }}</small> }
+              @if (focus.profession) { <small>{{ focus.profession }}</small> }
+              @if (focus.residence) { <small>{{ focus.residence }}</small> }
+              @if (focus.isDeceased) { <small class="deceased">Fallecido/a</small> }
+            </button>
+            @if (!readOnly) { <button type="button" class="card-edit" (click)="openEdit(focus)" aria-label="Editar {{ fullName(focus) }}" title="Editar persona">&#9998;</button> }
+            </div>
+            @if (partnerOf(focus.id); as partner) {
+              <div class="partner-link">Pareja</div>
+              <div class="person-card-wrap">
+              <button type="button" class="focus-card partner-focus" (click)="selectMember(partner)">
+                @if (partner.photoUrl) { <img class="profile-photo clickable-photo" [src]="partner.photoUrl" [alt]="fullName(partner)" (click)="openPhoto(partner, $event)" /> } @else { <span class="avatar">{{ initials(partner) }}</span> }
+                <strong>{{ fullName(partner) }}</strong>
+                @if (partner.birthDate) { <small>{{ partner.birthDate }}</small> }
+                @if (partner.profession) { <small>{{ partner.profession }}</small> }
+                @if (partner.isDeceased) { <small class="deceased">Fallecido/a</small> }
+              </button>
+              @if (!readOnly) { <button type="button" class="card-edit" (click)="openEdit(partner)" aria-label="Editar {{ fullName(partner) }}" title="Editar persona">&#9998;</button> }
+              </div>
+              @if (partnerStatusOf(focus.id) === 'separated') { <span class="relationship-state">Pareja separada</span> }
+            }
+          </section>
+
+          @if (!readOnly) { <div class="focus-actions">
+            <button type="button" (click)="openAddParent(focus)">Agregar padre/madre</button>
+            <button type="button" (click)="openAddPartner(focus)">Agregar pareja</button>
+            <button type="button" class="primary-action" (click)="openAddChild(focus)">Agregar hijo/a</button>
+          </div> }
+
+          <section class="descendants">
+            <div class="descendants-heading">
+                <div><span>Descendencia de {{ familyName(focus) }}</span><h3>Familia registrada</h3></div>
+                <strong>{{ familyChildrenOf(focus).length }}</strong>
+            </div>
+                @if (familyChildrenOf(focus).length) {
+              <div class="children-grid">
+                @for (child of familyChildrenOf(focus); track child.id) {
+                  <article class="child-family">
+                    <div class="person-card-wrap child-card-wrap"><button type="button" class="child-card" (click)="selectMember(child)">
+                      @if (child.photoUrl) { <img class="child-photo clickable-photo" [src]="child.photoUrl" [alt]="fullName(child)" (click)="openPhoto(child, $event)" /> } @else { <span class="avatar child-avatar">{{ initials(child) }}</span> }
+                      <strong>{{ fullName(child) }}</strong><small>Ver su familia</small>
+                    </button>@if (!readOnly) { <button type="button" class="card-edit" (click)="openEdit(child)" aria-label="Editar {{ fullName(child) }}" title="Editar persona">&#9998;</button> }</div>
+                  </article>
+                }
+              </div>
+            } @else { <div class="no-children">Aun no hay hijos registrados para {{ focus.firstName }}.</div> }
+          </section>
+        </div>
+      }
+    </section>
+  </section>
+</main>
+
+@if (modalOpen()) {
+  <div class="modal-backdrop" (click)="cancelAdd()">
+    <section class="person-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <span>{{ editingMemberId() ? 'Editar persona' : 'Nueva persona' }}</span>
+          <h2>{{ editingMemberId() ? 'Actualizar datos familiares' : formMode() === 'parent' ? 'Agregar padre o madre' : formMode() === 'partner' ? 'Agregar pareja' : parentId() ? 'Agregar hijo o hija' : 'Crear persona raiz' }}</h2>
+        </div>
+        <button type="button" class="close-modal" (click)="cancelAdd()" aria-label="Cerrar">×</button>
+      </header>
+      @if (parentId() && !editingMemberId()) { <p class="hint">Se vinculara con {{ fullName(selectedMember()!) }}.</p> }
+      <form (ngSubmit)="saveMember()">
+        <div class="modal-fields">
+          <label>Nombres<input name="modalFirstName" [ngModel]="firstName()" (ngModelChange)="firstName.set($event)" required /></label>
+          <label>Apellido paterno<input name="modalPaternalSurname" [ngModel]="paternalSurname()" (ngModelChange)="paternalSurname.set($event)" /></label>
+          <label>Apellido materno<input name="modalMaternalSurname" [ngModel]="maternalSurname()" (ngModelChange)="maternalSurname.set($event)" /></label>
+          <label>Fecha de nacimiento<input name="modalBirthDate" type="date" [ngModel]="birthDate()" (ngModelChange)="birthDate.set($event)" /></label>
+          <label>Lugar de nacimiento<input name="modalBirthPlace" [ngModel]="birthPlace()" (ngModelChange)="birthPlace.set($event)" /></label>
+          <label>Residencia<input name="modalResidence" [ngModel]="residence()" (ngModelChange)="residence.set($event)" /></label>
+          <label>Profesión u oficio<input name="modalProfession" [ngModel]="profession()" (ngModelChange)="profession.set($event)" /></label>
+          <label>Fecha de fallecimiento<input name="modalDeathDate" type="date" [ngModel]="deathDate()" (ngModelChange)="deathDate.set($event)" /></label>
+          <label>Lugar de sepultura<input name="modalBurialPlace" [ngModel]="burialPlace()" (ngModelChange)="burialPlace.set($event)" /></label>
+          <label>Notas<textarea name="modalNotes" rows="3" [ngModel]="notes()" (ngModelChange)="notes.set($event)"></textarea></label>
+        </div>
+        <label>Biografía<textarea name="modalBiography" rows="3" [ngModel]="biography()" (ngModelChange)="biography.set($event)"></textarea></label>
+        <div class="modal-fields contact-fields"><label>Teléfono<input name="modalPhone" [ngModel]="phone()" (ngModelChange)="phone.set($event)" /></label><label>Correo<input name="modalEmail" type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" /></label><label>Redes sociales<input name="modalSocial" [ngModel]="socialLinks()" (ngModelChange)="socialLinks.set($event)" /></label></div>
+        <label for="modalProfilePhoto">Foto de perfil</label>
+        <div class="photo-input">
+          @if (photoUrl()) { <img [src]="photoUrl()" alt="Vista previa de la foto" /> } @else { <span>Sin foto</span> }
+          <input id="modalProfilePhoto" type="file" accept="image/*" (change)="onPhotoSelected($event)" />
+        </div>
+        <div class="status-fields">
+          <label><input type="checkbox" name="modalDeceased" [ngModel]="isDeceased()" (ngModelChange)="isDeceased.set($event)" /> Persona fallecida</label>
+          @if (formMode() === 'partner' || (editingMemberId() && partnerOf(editingMemberId()!))) {
+            <label><input type="checkbox" name="modalSeparated" [ngModel]="partnerSeparated()" (ngModelChange)="partnerSeparated.set($event)" /> Pareja separada</label>
+          }
+          <label><input type="checkbox" name="modalPrimary" [ngModel]="isPrimary()" (ngModelChange)="isPrimary.set($event)" /> Persona principal de la familia</label>
+        </div>
+        @if (message()) { <p class="message">{{ message() }}</p> }
+        <div class="modal-actions">
+          @if (editingMemberId()) { <button type="button" class="danger" (click)="deleteEditingMember()">Eliminar persona</button> }
+          <span></span><button type="button" class="secondary" (click)="cancelAdd()">Cancelar</button><button type="submit">{{ editingMemberId() ? 'Guardar cambios' : 'Guardar persona' }}</button>
+        </div>
+      </form>
+    </section>
+  </div>
+}
+
+@if (showShare()) { <div class="modal-backdrop" (click)="showShare.set(false)"><section class="person-modal share-modal" (click)="$event.stopPropagation()"><button type="button" class="close-modal" (click)="showShare.set(false)">×</button><h2>Árbol familiar para consulta</h2><p>Comparte este QR. El enlace permite ver, buscar y navegar, pero no editar.</p><img [src]="shareQr()" alt="QR de consulta del árbol" /><a [href]="shareUrl()" target="_blank">Abrir enlace de solo lectura</a></section></div> }
+
+@if (photoViewer(); as person) {
+  <div class="photo-backdrop" (click)="closePhoto()">
+    <section class="photo-viewer" (click)="$event.stopPropagation()">
+      <button type="button" class="close-modal" (click)="closePhoto()" aria-label="Cerrar foto">×</button>
+      <img [src]="person.photoUrl" [alt]="fullName(person)" />
+      <strong>{{ fullName(person) }}</strong>
+    </section>
+  </div>
+}

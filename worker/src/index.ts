@@ -367,7 +367,13 @@ async function createPhotoRecord(
 
 async function getGoogleAccessToken(env: Env): Promise<string> {
   if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && env.GOOGLE_REFRESH_TOKEN) {
-    return getOAuthAccessToken(env);
+    try {
+      return await getOAuthAccessToken(env);
+    } catch (error) {
+      if (!env.GOOGLE_CLIENT_EMAIL || !env.GOOGLE_PRIVATE_KEY) {
+        throw error;
+      }
+    }
   }
 
   const now = Math.floor(Date.now() / 1000);

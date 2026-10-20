@@ -20,8 +20,8 @@
         </label>
 
         <label class="file-action secondary">
-          <input type="file" accept="image/*,video/*" (change)="upload($event)" />
-          <span>{{ isUploading() ? 'Subiendo...' : 'Subir archivo' }}</span>
+          <input type="file" accept="image/*,video/*" multiple (change)="upload($event)" />
+          <span>{{ isUploading() ? 'Subiendo...' : 'Subir archivos' }}</span>
         </label>
       </div>
 

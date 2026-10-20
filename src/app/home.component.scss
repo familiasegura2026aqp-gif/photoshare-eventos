@@ -48,6 +48,35 @@ h1 {
   padding: 20px;
 }
 
+.family-panel {
+  align-items: center;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.family-panel h2 {
+  margin-top: 4px;
+}
+
+.family-panel p:last-child {
+  color: #526070;
+  margin-top: 8px;
+}
+
+.family-link {
+  align-items: center;
+  background: #0f766e;
+  border-radius: 8px;
+  color: #ffffff;
+  display: inline-flex;
+  font-weight: 800;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+
 .creator {
   display: grid;
   gap: 10px;
@@ -229,5 +258,10 @@ a {
   .qr-result {
     align-items: flex-start;
     display: grid;
+  }
+
+  .family-panel {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
